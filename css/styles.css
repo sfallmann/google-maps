@@ -23,14 +23,13 @@ body {
 
 #menu {
     width: 400px;
-    margin-top: 100px;
+    margin-top: 30px;
     background-color: black;
     padding: 0;
     opacity: .80;
     border-radius: 5px;
     text-align: center;
-    max-height: 240px;
-    overflow: auto;
+
 }
 
 
@@ -46,6 +45,8 @@ body {
     margin: 0;
     padding: 0;
     margin-top: 10px;
+    max-height: 240px;
+    overflow: auto;
 }
 
 #menu-items .btn, .title-input {

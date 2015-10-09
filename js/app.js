@@ -63,7 +63,7 @@
             });
             */
 
-            panorama = new google.maps.StreetViewPanorama(
+            var panorama = new google.maps.StreetViewPanorama(
                 document.getElementById('street-view'),
                 {
                     position: markerData.position   ,
@@ -91,7 +91,17 @@
             map: map
         });
 
-        var marker = new Marker("No Title", mapMarker);
+        var panorama = new google.maps.StreetViewPanorama(
+            document.getElementById('street-view'),
+            {
+                position: latLng,
+                pov: {heading: 165, pitch: 0},
+                zoom: 1,
+                visible: false
+            }
+        );
+
+        var marker = new Marker("No Title", mapMarker, panorama);
         markers.push(ko.observable(marker));
 
         map.panTo(latLng);
@@ -113,6 +123,8 @@
         self.markers = markers;
         self.inputSelected = ko.observable(false);
         self.editingMarker = false;
+        self.clickedMarker;
+        self.clickedElement;
 
         self.editTitle = function(marker){
             if (!self.inputSelected() && !self.editingMarker){
@@ -137,9 +149,22 @@
             }
         };
 
-        self.showPanorama = function(marker){
-            console.log("Show Panorama", marker.panorama);
-            marker.panorama.setVisible(true);
+        self.showPanorama = function(marker, event){
+
+            if ((self.clickedMarker) &&  self.clickedMarker !== marker){
+                self.clickedMarker.panorama.setVisible(false);
+                self.clickedElement.toggleClass("btn-primary").toggleClass("btn-success");
+            }
+
+            if (self.clickedMarker !== marker){
+
+                $(event.target).toggleClass("btn-primary").toggleClass("btn-success");
+                marker.panorama.setVisible(true);
+
+                self.clickedElement = $(event.target);
+                self.clickedMarker = marker;
+            }
+
         };
 
     }
