@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" integrity="sha256-MfvZlkHCEqatNoGiOXveE8FIwMzZg4W85qfrfIFBfYc= sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
+    <link href="css/styles.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+    <div class="container-fluid">
+
+        <div class="row">
+            <div class="col-md-2" id="menu">
+                <div id="menu-title">Markers</div>
+                <ul id="menu-items" data-bind="foreach: markers">
+                    <li><h3 data-bind="visible: !readyToEdit">Here!</h3>
+                        <div data-bind="if: readyToEdit">
+                            <button data-bind="click: $parent.showPanorama, event: { dblclick: $parent.editTitle }, text: title" class="btn btn-primary"></button>
+                        </div>
+                        <div data-bind="ifnot: readyToEdit">
+                            <input type="text" class="title-input" data-bind="hasFocus: $parent.inputSelected, event: { keypress: $parent.doneEditing }, textInput: title"/>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-md-10"></div>
+        </div>
+        <div class="row">
+            <div class="hide col-md-2" id="street-view"></div>
+        </div>
+
+    </div>
+<div id="map"></div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha256-Sk3nkD6mLTMOF0EOpNtsIry+s1CsaqQC1rVLTAy+0yc= sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?callback=initMap"></script>
+    <script src="js/lib/knockout-3.2.0.js"></script>
+    <script>
+
+
+
+
+
+    </script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>
