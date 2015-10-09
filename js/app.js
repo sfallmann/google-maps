@@ -59,6 +59,7 @@
         ];
 
 
+
         function Controller(data){
 
             this.markersData = data;
@@ -71,6 +72,7 @@
 
         Controller.prototype = {
 
+            // initialize the listeners for map related events
             initMapListeners: function(){
                 var self = this;
                 map.addListener('click', function(e) {
