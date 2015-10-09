@@ -10,17 +10,27 @@ body {
     z-index: 1;
 }
 
+.container-fluid {
+    position: absolute;
+    z-index: 2;
+}
+
+#street-view {
+
+    width: 400px;
+    height: 250px;
+}
+
 #menu {
     width: 400px;
-    z-index: 2;
     margin-top: 100px;
-    position: absolute;
     background-color: black;
     padding: 0;
     opacity: .80;
     border-radius: 5px;
     text-align: center;
-
+    max-height: 240px;
+    overflow: auto;
 }
 
 

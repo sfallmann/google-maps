@@ -16,17 +16,17 @@
     var markerDataArr = [
 
         {
-            title: "Progressive Business Media",
+            title: "Regal Cinems - Palladium",
             position: {
-                lat: 36.073982,
-                lng: -79.950307
+                lat: 36.0347243,
+                lng: -79.9616307
             }
         },
         {
             title: "Piedmont Triad Internationl Airport",
             position: {
-                lat: 36.0999608,
-                lng: -79.9647609
+                lat: 36.0867525,
+                lng: -79.9639517
             }
         },
         {
@@ -37,14 +37,6 @@
             }
         }
     ];
-
-    function Marker(title, mapMarker, panorama){
-        this.title = ko.observable(title) || ko.observale("No Title");
-        this.mapMarker = mapMarker;
-        this.readyToEdit = ko.observable(true);
-        this.panorama = panorama;
-
-    };
 
     var markers = ko.observableArray();
 
@@ -60,32 +52,59 @@
             markerData.map = map;
 
             var mapMarker = new google.maps.Marker(markerData);
-            var panorama = map.getStreetView();
-            //panorama.setPosition(markerData);
 
-            var marker = new Marker(markerData.title, mapMarker, "" );
+            /*
+            var panorama = new google.maps.StreetViewPanorama(
+                document.getElementById('street-view'),
+                {
+                position: markerData.position,
+                zoom: 1,
+                visible: false
+            });
+            */
+
+            panorama = new google.maps.StreetViewPanorama(
+                document.getElementById('street-view'),
+                {
+                    position: markerData.position   ,
+                    pov: {heading: 165, pitch: 0},
+                    zoom: 1,
+                    visible: false
+                }
+            );
+
+            console.log(markerData.position.lat);
+
+
+            //panorama.setVisible(false);
+
+            var marker = new Marker(markerData.title, mapMarker, panorama);
             markers.push(ko.observable(marker));
         });
-        console.log(markers());
+
     }
 
     function placeMarkerAndPanTo(latLng, map) {
 
-        if (markers().length < 9){
-            var mapMarker = new google.maps.Marker({
-                position: latLng,
-                map: map
-            });
+        var mapMarker = new google.maps.Marker({
+            position: latLng,
+            map: map
+        });
 
-            var marker = new Marker("No Title", mapMarker);
-            markers.push(ko.observable(marker));
+        var marker = new Marker("No Title", mapMarker);
+        markers.push(ko.observable(marker));
 
-            map.panTo(latLng);
-        }
-        else{
-            alert( " There can only be 8 markers in the list! ");
-        }
+        map.panTo(latLng);
     }
+
+
+    function Marker(title, mapMarker, panorama){
+        this.title = ko.observable(title) || ko.observale("No Title");
+        this.mapMarker = mapMarker;
+        this.readyToEdit = ko.observable(true);
+        this.panorama = panorama;
+
+    };
 
 
     function MarkersViewModel(){
@@ -93,17 +112,21 @@
 
         self.markers = markers;
         self.inputSelected = ko.observable(false);
+        self.editingMarker = false;
 
         self.editTitle = function(marker){
-
-            marker.readyToEdit(!(marker.readyToEdit()));
-            self.inputSelected(true);
+            if (!self.inputSelected() && !self.editingMarker){
+                marker.readyToEdit(false);
+                self.inputSelected(true);
+                self.editingMarker = true;
+            }
         };
 
         self.doneEditing = function(marker, event){
             var title = marker.title();
 
             if(event.keyCode == 13){
+                self.editingMarker = false;
                 self.inputSelected(false);
                 marker.readyToEdit(!(marker.readyToEdit()));
             }
@@ -114,9 +137,16 @@
             }
         };
 
+        self.showPanorama = function(marker){
+            console.log("Show Panorama", marker.panorama);
+            marker.panorama.setVisible(true);
+        };
+
     }
 
-    ko.applyBindings(new MarkersViewModel());
+    var markersViewModel = new MarkersViewModel();
+
+    ko.applyBindings(markersViewModel);
 
 }(window));
 
