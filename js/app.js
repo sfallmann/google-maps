@@ -17,9 +17,7 @@
         // creates map object
         panorama = new google.maps.StreetViewPanorama(document.getElementById('street-view'));
         map = new google.maps.Map(document.getElementById('map'), mapData);
-
-
-
+        sv = new google.maps.StreetViewService();
         // starts rest of app once the map is created
         start();
 
@@ -27,9 +25,6 @@
 
     // houses the application so it could be invoked after the initMap callback is invoked
     var start = function(){
-
-
-
 
         // the starting marker data - the Model
         // TODO: Pass coords through StreetViewService which will return approx coords that have StreetViews assoicated with them
@@ -63,11 +58,6 @@
         function Controller(data){
 
             this.markersData = data;
-            this.markersVM;
-
-            this.sv = new google.maps.StreetViewService();
-
-
         }
 
         Controller.prototype = {
@@ -78,6 +68,7 @@
                 map.addListener('click', function(e) {
                     var marker = self.addMarker(e.latLng, map);
 
+
                 });
             },
 
@@ -85,54 +76,51 @@
 
                 var self = this;
                 var markers = [];
-
+                var n = self.markersData.length;
 
                 self.markersData.forEach(function(item){
-                    item.map = map;
 
-                    var mapMarker = new google.maps.Marker(item);
+                    var mapMarker;
 
-                    console.log(self.sv.getPanorama({ location: item.position, radius: 500 }, processSVData));
+                    sv.getPanorama({ location: item.position, radius: 250 }, function(data,status){
 
+                        n--;
+                        var _m = pano.service.processSVData(data,status);
+                        var marker = new Marker(data.location.description, _m, panorama);
+                        marker = ko.observable(marker);
+                        markers.push(marker);
 
-
-
-                    var marker = new Marker(item.title, mapMarker, panorama);
-                    markers.push(ko.observable(marker));
+                        if (n === 0){
+                            self.markersVM = new MarkersViewModel(markers);
+                            ko.applyBindings(self.markersVM);
+                        }
+                    });
                 });
-
-                return markers;
-
             },
 
             init: function(){
                 this.initMapListeners();
-                this.markersVM = new MarkersViewModel(this.initMarkers());
-                ko.applyBindings(this.markersVM);
-                console.log(this.markersVM);
+                this.initMarkers();
+
             },
 
             addMarker: function(latLng, map) {
 
-                var mapMarker = new google.maps.Marker({
-                    position: latLng,
-                    map: map
+                var self = this;
+
+                sv.getPanorama({ location: latLng, radius: 250 }, function(data,status){
+
+
+                    var m = pano.service.processSVData(data,status);
+
+                    var marker = new Marker(data.location.description,m,panorama);
+
+                    self.markersVM.markers.push(ko.observable(marker));
+
+
                 });
 
-                var panorama = new google.maps.StreetViewPanorama(
-                    document.getElementById('street-view'),
-                    {
-                        position: latLng,
-                        pov: {heading: 165, pitch: 0},
-                        zoom: 1,
-                        visible: false
-                    }
-                );
-
-                var marker = new Marker("No Title", mapMarker, panorama);
-                this.markersVM.markers.push(ko.observable(marker));
-
-                map.panTo(latLng);
+                //map.panTo(latLng);
 
             }
 
@@ -154,7 +142,6 @@
 
             this.editTitle = function(marker){
                 console.log("Editing Title");
-                console.log(self);
                 if (!self.inputSelected() && !self.editingMarker){
                     marker.readyToEdit(false);
                     self.inputSelected(true);
@@ -179,79 +166,85 @@
 
             this.showPanorama = function(marker, event){
 
-                $("#street-view").removeClass("hide");
 
-                if ((self.clickedMarker) &&  self.clickedMarker !== marker){
-                    self.clickedMarker.panorama.setVisible(false);
-                    self.clickedElement.toggleClass("btn-primary").toggleClass("btn-success");
+                if (self.clickedMarker === marker){
+
+                    self.clickedElement.toggleClass("li-select").toggleClass("li-unselect");
+                    $("#street-view").toggleClass("hide");
+
                 }
+                else {
+                    $("#street-view").removeClass("hide");
+                    self.clickedMarker = marker;
 
-                if (self.clickedMarker !== marker){
+                    if ((self.clickedElement) && self.clickedElement.hasClass("li-select"))
+                        self.clickedElement.toggleClass("li-select").toggleClass("li-unselect");
 
-                    $(event.target).toggleClass("btn-primary").toggleClass("btn-success");
-                    marker.panorama.setVisible(true);
+                    $(event.target).toggleClass("li-select").toggleClass("li-unselect");
+
+                    pano.service.showPano(self.clickedMarker.mapMarker.panoID);
+                    console.log(self.clickedMarker.mapMarker.panoID);
 
                     self.clickedElement = $(event.target);
-                    self.clickedMarker = marker;
                 }
+
 
             }
         }
 
+        var pano = {
 
-        function processSVData(data, status) {
+            service: {
 
-
-            var marker;
-
-            if (status === google.maps.StreetViewStatus.OK) {
-
-                marker = new google.maps.Marker({
-                    position: data.location.latLng,
-                    map: map,
-                    title: data.location.description
-                });
-
-                panorama.setPano(data.location.pano);
-                panorama.setPov({
-                    heading: 270,
-                    pitch: 0
-                });
-                panorama.setVisible(true);
-
-                marker.addListener('click', function() {
-                    var markerPanoID = data.location.pano;
-                    // Set the Pano to use the passed panoID.
-                    panorama.setPano(markerPanoID);
+                showPano: function(panoID){
+                    panorama.setPano(panoID);
                     panorama.setPov({
                         heading: 270,
                         pitch: 0
                     });
                     panorama.setVisible(true);
-                });
-            } else {
-                console.error('Street View data not found for this location.');
+
+                },
+                processSVData: function(data,status){
+                    if (status === google.maps.StreetViewStatus.OK) {
+
+
+
+                        marker = new google.maps.Marker({
+                            position: data.location.latLng,
+                            map: map,
+                            title: data.location.description,
+                            panoID: data.location.pano,
+                        });
+
+                        marker.addListener('click', function() {
+                            $("#street-view").removeClass("hide");
+                            // Set the Pano to use the passed panoID.
+
+                            pano.service.showPano(this.panoID);
+
+                        });
+
+
+                    } else {
+                        console.error('Street View data not found for this location.');
+                    }
+
+                    return marker;
+                }
             }
-
-            console.log(marker, panorama);
-            var mp =  {marker: marker, panorama: panorama};
-            return mp;
-
         }
 
-
-        function Marker(title, mapMarker, panorama){
+        function Marker(title, mapMarker){
             this.title = ko.observable(title) || ko.observale("No Title");
             this.mapMarker = mapMarker;
             this.readyToEdit = ko.observable(true);
-            this.panorama = panorama;
 
         };
 
 
         var ctrl = new Controller(markerDataArr);
         ctrl.init();
-
 
     }
 
